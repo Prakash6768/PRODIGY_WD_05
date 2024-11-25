@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f8ff;
+            color: #333;
+            padding: 20px;
+        }
+        #weather-info {
+            margin-top: 20px;
+            display: none;
+        }
+        .loading {
+            color: #333;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            width: 200px;
+        }
+        #weather-data {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weather App</h1>
+    <input type="text" id="location-input" placeholder="Enter city name">
+    <button onclick="fetchWeather()">Get Weather</button>
+    <button onclick="fetchWeatherByLocation()">Use My Location</button>
+    
+    <div id="weather-info">
+        <h2>Weather Information</h2>
+        <p class="loading" id="loading-message">Loading...</p>
+        <p id="weather-data"></p>
+    </div>
+
+    <script>
+        async function fetchWeather() {
+            const location = document.getElementById('location-input').value;
+            if (!location) {
+                alert('Please enter a location.');
+                return;
+            }
+            
+            // Show loading message
+            document.getElementById('loading-message').style.display = 'block';
+            document.getElementById('weather-info').style.display = 'none';
+
+            const url = `https://wttr.in/${location}?format=%C+%t+%h+%w`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('City not found');
+                }
+                const data = await response.text();
+                document.getElementById('weather-info').style.display = 'block';
+                document.getElementById('loading-message').style.display = 'none';
+                document.getElementById('weather-data').innerText = `Weather in ${location}: ${data}`;
+            } catch (error) {
+                alert('Failed to fetch weather data. Please try again.');
+                document.getElementById('loading-message').style.display = 'none';
+            }
+        }
+
+        function fetchWeatherByLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    // Show loading message
+                    document.getElementById('loading-message').style.display = 'block';
+                    document.getElementById('weather-info').style.display = 'none';
+
+                    const url = `https://wttr.in/${lat},${lon}?format=%C+%t+%h+%w`;
+                    try {
+                        const response = await fetch(url);
+                        if (!response.ok) {
+                            throw new Error('Weather data not available');
+                        }
+                        const data = await response.text();
+                        document.getElementById('weather-info').style.display = 'block';
+                        document.getElementById('loading-message').style.display = 'none';
+                        document.getElementById('weather-data').innerText = `Current location weather: ${data}`;
+                    } catch (error) {
+                        alert('Failed to fetch weather data. Please try again.');
+                        document.getElementById('loading-message').style.display = 'none';
+                    }
+                }, () => {
+                    alert('Geolocation permission denied or not supported.');
+                    document.getElementById('loading-message').style.display = 'none';
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+                document.getElementById('loading-message').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
